@@ -31,7 +31,7 @@ def vnd(value):
 
 
 def load_background(path="background.jpg"):
-    """Đọc ảnh nền cục bộ nếu có; nếu không, dùng nền màu."""
+    """Đọc ảnh nền cục bộ và phủ một lớp tối để làm nổi bật chữ trắng."""
     if os.path.exists(path):
         with open(path, "rb") as file:
             encoded = base64.b64encode(file.read()).decode()
@@ -39,18 +39,27 @@ def load_background(path="background.jpg"):
         <style>
         .stApp {{
             background-image: linear-gradient(
-                rgba(7, 25, 54, 0.78),
-                rgba(7, 25, 54, 0.88)
+                rgba(5, 15, 35, 0.88),
+                rgba(5, 15, 35, 0.92)
             ),
             url("data:image/jpeg;base64,{encoded}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
         }}
+        /* Ép toàn bộ chữ thành màu trắng sáng để hiển thị cực kỳ rõ trên nền ảnh tối */
+        h1, h2, h3, h4, h5, h6, p, label, span, .stMarkdown, div[data-testid="stMarkdownContainer"] {{
+            color: #ffffff !important;
+        }}
         </style>
         """
     return """
     <style>
+    .stApp {
+        background: linear-gradient(135deg, #071936 0%, #103d68 55%, #eaf4ff 150%);
+    }
+    </style>
+    """
     .stApp {
         background: linear-gradient(135deg, #071936 0%, #103d68 55%, #eaf4ff 150%);
     }
