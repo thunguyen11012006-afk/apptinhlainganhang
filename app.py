@@ -60,11 +60,6 @@ def load_background(path="background.jpg"):
     }
     </style>
     """
-    .stApp {
-        background: linear-gradient(135deg, #071936 0%, #103d68 55%, #eaf4ff 150%);
-    }
-    </style>
-    """
 
 
 def calculate_loan(principal, annual_rate_percent, months, method):
