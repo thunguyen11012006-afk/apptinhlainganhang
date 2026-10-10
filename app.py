@@ -31,7 +31,7 @@ def vnd(value):
 
 
 def load_background(path="background.jpg"):
-    """Đọc ảnh nền cục bộ và phủ một lớp tối để làm nổi bật chữ trắng."""
+    """Đọc ảnh nền cục bộ và làm mờ nhẹ trên nền sáng sạch sẽ."""
     if os.path.exists(path):
         with open(path, "rb") as file:
             encoded = base64.b64encode(file.read()).decode()
@@ -39,24 +39,27 @@ def load_background(path="background.jpg"):
         <style>
         .stApp {{
             background-image: linear-gradient(
-                rgba(5, 15, 35, 0.88),
-                rgba(5, 15, 35, 0.92)
+                rgba(255, 255, 255, 0.92),
+                rgba(255, 255, 255, 0.92)
             ),
             url("data:image/jpeg;base64,{encoded}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
         }}
-        /* Ép toàn bộ chữ thành màu trắng sáng để hiển thị cực kỳ rõ trên nền ảnh tối */
+        /* Ép chữ thành màu đen/xám đậm sắc nét trên nền sáng */
         h1, h2, h3, h4, h5, h6, p, label, span, .stMarkdown, div[data-testid="stMarkdownContainer"] {{
-            color: #ffffff !important;
+            color: #1a1a1a !important;
         }}
         </style>
         """
     return """
     <style>
     .stApp {
-        background: linear-gradient(135deg, #071936 0%, #103d68 55%, #eaf4ff 150%);
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+    h1, h2, h3, h4, h5, h6, p, label, span, .stMarkdown {
+        color: #1a1a1a !important;
     }
     </style>
     """
@@ -147,7 +150,7 @@ def ask_openrouter(api_key, model, messages):
 
 
 # ============================================================
-# CSS / GIAO DIỆN
+# CSS / GIAO DIỆN SÁNG SỦA, DỄ NHÌN
 # ============================================================
 
 st.markdown(load_background(), unsafe_allow_html=True)
@@ -159,21 +162,29 @@ st.markdown(
     .hero {
         padding: 1.6rem 1.8rem;
         border-radius: 20px;
-        background: linear-gradient(120deg, rgba(7,31,66,.96), rgba(18,93,145,.91));
-        border: 1px solid rgba(255,255,255,.20);
+        background: linear-gradient(120deg, #1e3a8a, #3b82f6);
+        border: 1px solid rgba(0,0,0,.1);
         color: white;
-        box-shadow: 0 10px 30px rgba(0,0,0,.18);
+        box-shadow: 0 10px 25px rgba(0,0,0,.08);
         margin-bottom: 1.2rem;
     }
-    .hero h1 {font-size: clamp(1.7rem, 4vw, 2.7rem); margin: 0 0 .45rem 0; color: white;}
-    .hero p {font-size: 1.02rem; margin: 0; color: #e6f3ff;}
+    .hero h1 {font-size: clamp(1.7rem, 4vw, 2.7rem); margin: 0 0 .45rem 0; color: white !important;}
+    .hero p {font-size: 1.02rem; margin: 0; color: #f1f5f9 !important;}
+    
     div[data-testid="stMetric"] {
-        background: rgba(255,255,255,.93);
-        border: 1px solid #d8e7f4;
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid #cbd5e1;
         padding: 15px 17px;
         border-radius: 14px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.04);
     }
-    div[data-testid="stMetric"] label {color: #244b70 !important;}
+    div[data-testid="stMetric"] label {color: #475569 !important;}
+    
+    /* Tùy chỉnh sidebar nền sáng dễ đọc */
+    section[data-testid="stSidebar"] {
+        background-color: #f8fafc;
+        border-right: 1px solid #e2e8f0;
+    }
     </style>
     """,
     unsafe_allow_html=True
