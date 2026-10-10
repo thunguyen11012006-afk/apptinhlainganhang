@@ -165,3 +165,5 @@ st.markdown(
         border-radius: 14px;
     }
     div[data-testid="stMetric"] label {color: #244b70 !important;}
+</style>
+""", unsafe_allow_html=True)
