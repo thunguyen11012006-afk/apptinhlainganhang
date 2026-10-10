@@ -9,6 +9,7 @@ import streamlit as st
 # ============================================================
 # CẤU HÌNH ỨNG DỤNG
 # ============================================================
+
 st.set_page_config(
     page_title="Tính Khoản Vay Ngân Hàng",
     page_icon="🏦",
@@ -20,10 +21,10 @@ APP_TITLE = "TÍNH KHOẢN VAY NGÂN HÀNG"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "openai/gpt-4o-mini"
 
-
 # ============================================================
 # HÀM HỖ TRỢ
 # ============================================================
+
 def vnd(value):
     """Định dạng số tiền theo kiểu Việt Nam."""
     return f"{value:,.0f} VNĐ".replace(",", ".")
@@ -38,8 +39,10 @@ def load_background(path="background.jpg"):
         <style>
         .stApp {{
             background-image: linear-gradient(
-                rgba(7, 25, 54, 0.78), rgba(7, 25, 54, 0.88)
-            ), url("data:image/jpeg;base64,{encoded}");
+                rgba(7, 25, 54, 0.78),
+                rgba(7, 25, 54, 0.88)
+            ),
+            url("data:image/jpeg;base64,{encoded}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -142,7 +145,9 @@ def ask_openrouter(api_key, model, messages):
 # ============================================================
 # CSS / GIAO DIỆN
 # ============================================================
+
 st.markdown(load_background(), unsafe_allow_html=True)
+
 st.markdown(
     """
     <style>
@@ -165,5 +170,92 @@ st.markdown(
         border-radius: 14px;
     }
     div[data-testid="stMetric"] label {color: #244b70 !important;}
-</style>
-""", unsafe_allow_html=True)
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# ============================================================
+# GIAO DIỆN CHÍNH (STREAMLIT UI)
+# ============================================================
+
+st.markdown(
+    f"""
+    <div class="hero">
+        <h1>{APP_TITLE}</h1>
+        <p>Công cụ tính toán lịch trả nợ ngân hàng chi tiết và hỗ trợ tư vấn tài chính thông minh.</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# Sidebar nhập liệu
+st.sidebar.header("⚙️ Thông số khoản vay")
+principal = st.sidebar.number_input("Số tiền vay (VNĐ)", min_value=1_000_000, value=500_000_000, step=10_000_000)
+annual_rate = st.sidebar.number_input("Lãi suất năm (%/năm)", min_value=0.0, value=9.5, step=0.1)
+months = st.sidebar.number_input("Thời hạn vay (tháng)", min_value=1, value=360, step=12)
+method = st.sidebar.selectbox(
+    "Phương pháp trả nợ",
+    [
+        "Trả góp đều (gốc + lãi gần bằng nhau)",
+        "Gốc đều hằng tháng (gốc cố định, lãi giảm dần)"
+    ]
+)
+
+# Lấy API Key từ Streamlit Secrets hoặc biến môi trường
+api_key = ""
+try:
+    api_key = st.secrets.get("OPENROUTER_API_KEY", "")
+except Exception:
+    pass
+
+if not api_key:
+    api_key = os.getenv("OPENROUTER_API_KEY", "")
+
+# Nút tính toán
+if st.sidebar.button("Tính toán lịch trả nợ", type="primary"):
+    schedule, total_interest, total_payment = calculate_loan(principal, annual_rate, months, method)
+    
+    st.success("Đã tính toán thành công!")
+    
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Tổng gốc phải trả", vnd(principal))
+    col2.metric("Tổng tiền lãi", vnd(total_interest))
+    col3.metric("Tổng gốc + lãi", vnd(total_payment))
+    
+    st.subheader("📊 Bảng lịch trình trả nợ chi tiết")
+    st.dataframe(schedule, use_container_width=True)
+
+# Phần giao diện Chatbot tư vấn AI
+st.markdown("---")
+st.subheader("💬 Hỏi đáp cùng Trợ lý tài chính AI")
+
+if "messages" not in st.session_state:
+    st.session_state["messages"] = [
+        {"role": "system", "content": "Bạn là một chuyên gia tư vấn tài chính và ngân hàng tận tâm, hỗ trợ giải đáp các vấn đề liên quan đến khoản vay, lãi suất và kế hoạch tài chính cho người dùng."}
+    ]
+
+# Hiển thị lịch sử chat
+for msg in st.session_state["messages"]:
+    if msg["role"] != "system":
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+# Nhập câu hỏi từ người dùng
+user_input = st.chat_input("Nhập câu hỏi của bạn về khoản vay hoặc tài chính...")
+if user_input:
+    if not api_key:
+        st.error("Chưa cấu hình OpenRouter API Key trong Streamlit Secrets! Vui lòng kiểm tra lại cài đặt.")
+    else:
+        st.session_state["messages"].append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.markdown(user_input)
+
+        with st.chat_message("assistant"):
+            with st.spinner("Đang xử lý câu trả lời..."):
+                try:
+                    bot_reply = ask_openrouter(api_key, DEFAULT_MODEL, st.session_state["messages"])
+                    st.markdown(bot_reply)
+                    st.session_state["messages"].append({"role": "assistant", "content": bot_reply})
+                except Exception as e:
+                    st.error(f"Đã xảy ra lỗi: {e}")
